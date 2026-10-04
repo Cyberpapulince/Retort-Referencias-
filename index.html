@@ -1408,9 +1408,56 @@
             openModal(id);
         }
 
+        // Filtro anti-groserías / palabras no permitidas
+        const FORBIDDEN_WORDS = [
+            'mierda', 'puta', 'puto', 'pendejo', 'pendeja', 'bastardo', 'bastarda',
+            'cabron', 'cabrona', 'cabrón', 'chingar', 'chingada', 'chingado', 'chingon', 'chingón',
+            'verga', 'pito', 'culo', 'concha', 'coño', 'maricon', 'maricón', 'joder',
+            'jodido', 'jodida', 'hijo de puta', 'hijodeputa', 'malparido', 'malparida',
+            'estupido', 'estúpido', 'estupida', 'estúpida', 'idiota', 'imbecil', 'imbécil',
+            'puerco', 'perra', 'bobo', 'boba', 'tarado', 'tarada', 'mamada', 'mamón', 'mamon',
+            'fuck', 'fucker', 'shit', 'bitch', 'asshole', 'cunt'
+        ];
+
+        function checkForbiddenWords(text) {
+            if (!text) return false;
+            // Normalizar texto para remover acentos/diacríticos y convertir a minúsculas
+            const normalizedText = text
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase();
+
+            return FORBIDDEN_WORDS.some(word => {
+                const normalizedWord = word
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase();
+
+                const regex = new RegExp(`\\b${normalizedWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                return regex.test(normalizedText);
+            });
+        }
+
         // Guardar o actualizar referencia
         async function handleFormSubmit(e) {
             e.preventDefault();
+
+            // Revisión del filtro anti-groserías en los campos del formulario antes de guardar
+            const fieldsToCheck = [
+                { name: 'Título', value: document.getElementById('ref-title').value },
+                { name: 'Cita Completa', value: document.getElementById('ref-citation-text').value },
+                { name: 'Autores', value: document.getElementById('ref-authors').value },
+                { name: 'Editorial / Revista', value: document.getElementById('ref-publisher').value },
+                { name: 'DOI / Enlace', value: document.getElementById('ref-doi').value },
+                { name: 'Notas', value: document.getElementById('ref-notes').value }
+            ];
+
+            for (const field of fieldsToCheck) {
+                if (checkForbiddenWords(field.value)) {
+                    alert(`⚠️ No se puede guardar la referencia.\n\nEl campo "${field.name}" contiene palabras o lenguaje no permitido.`);
+                    return;
+                }
+            }
 
             const editId = document.getElementById('ref-id').value;
             const refId = editId || 'ref-' + Date.now();
