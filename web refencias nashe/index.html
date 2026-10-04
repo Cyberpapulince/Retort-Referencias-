@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retort — Biblioteca de Referencias de Ingeniería Química</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        paper: '#F7F4ED',
+                        'paper-2': '#EFECE4',
+                        card: '#FCFBF8',
+                        ink: '#0F1B29',
+                        'ink-soft': '#5C6573',
+                        rule: '#DCD8CE',
+                        azure: '#C84B27',
+                        'azure-dark': '#A3391A',
+                    },
+                    fontFamily: {
+                        sans: ['IBM Plex Sans', 'sans-serif'],
+                        mono: ['IBM Plex Mono', 'monospace'],
+                        display: ['Fraunces', 'Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F7F4ED;
+            background-image:
+                linear-gradient(rgba(15, 27, 41, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15, 27, 41, 0.04) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #0F1B29;
+        }
+
+        .field {
+            width: 100%;
+            border-radius: 2px;
+            border: 1px solid #DCD8CE;
+            background-color: #FCFBF8;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #0F1B29;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .field:focus {
+            border-color: #0F1B29;
+            box-shadow: 0 0 0 1px #0F1B29;
+        }
+
+        /* Custom Scrollbar for sleek aesthetic */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F7F4ED;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #DCD8CE;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5C6573;
+        }
+    </style>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<body class="min-h-screen font-sans flex flex-col antialiased selection:bg-azure selection:text-white">
+
+    <header class="border-b-2 border-ink bg-paper/90 backdrop-blur sticky top-0 z-30">
+        <div class="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-6 px-6 pt-6 pb-5">
+            <div class="flex items-end gap-4">
+                <div class="grid h-14 w-14 place-items-center bg-ink text-paper shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-flask-conical">
+                        <path
+                            d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2">
+                        </path>
+                        <path d="M6.453 15h11.094"></path>
+                        <path d="M8.5 2h7"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-mono text-[11px] tracking-[0.25em] text-azure uppercase font-medium">Biblioteca de
+                        referencias de ingeniería química</p>
+                    <div class="flex items-center gap-3">
+                        <h1 class="font-display text-4xl sm:text-5xl leading-none font-semibold tracking-tight cursor-pointer"
+                            onclick="resetFilters()">
+                            Retort<span class="text-azure">.</span>
+                        </h1>
+                        <button onclick="openDisclaimerModal()" title="Aviso legal y educativo"
+                            class="grid h-7 w-7 place-items-center rounded-full border border-rule bg-card text-ink-soft hover:border-ink hover:text-ink hover:bg-paper-2 transition cursor-pointer font-mono text-sm font-bold shadow-sm"
+                            aria-label="Aviso legal y educativo">
+                            ?
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Bar (Sin Período) -->
+            <dl class="flex divide-x divide-rule border border-rule bg-card font-mono text-xs shadow-sm">
+                <div class="px-4 py-2 text-center sm:text-left">
+                    <dt class="text-[10px] tracking-[0.18em] text-ink-soft uppercase">Entradas</dt>
+                    <dd id="stat-entries" class="mt-0.5 text-base font-semibold text-ink">0</dd>
+                </div>
+                <div class="px-4 py-2 text-center sm:text-left">
+                    <dt class="text-[10px] tracking-[0.18em] text-ink-soft uppercase">Cuatrimestres</dt>
+                    <dd id="stat-cuatrimestres" class="mt-0.5 text-base font-semibold text-ink">0 / 11</dd>
+                </div>
+                <div class="px-4 py-2 text-center sm:text-left">
+                    <dt class="text-[10px] tracking-[0.18em] text-ink-soft uppercase">Materias</dt>
+                    <dd id="stat-topics" class="mt-0.5 text-base font-semibold text-ink">0</dd>
+                </div>
+                <div class="px-4 py-2 text-center sm:text-left">
+                    <dt class="text-[10px] tracking-[0.18em] text-ink-soft uppercase">Destacadas</dt>
+                    <dd id="stat-starred" class="mt-0.5 text-base font-semibold text-ink">0</dd>
+                </div>
+            </dl>
+        </div>
+    </header>
+
+    <div class="mx-auto grid max-w-7xl flex-1 w-full gap-8 px-6 py-8 lg:grid-cols-[16rem_1fr]">
+        <!-- Sidebar Navigation -->
+        <aside class="lg:sticky lg:top-28 lg:self-start space-y-6">
+            <div>
+                <h2 class="mb-2 font-mono text-[11px] tracking-[0.2em] text-ink-soft uppercase font-semibold">Navegación
+                </h2>
+                <nav id="sidebar-main-nav" class="flex flex-col gap-1">
+                    <!-- Main navigation links (Todas, Destacadas) rendered by JS -->
+                </nav>
+            </div>
+
+            <!-- Cuatrimestres Section (11 Cuatrimestres) -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-mono text-[11px] tracking-[0.2em] text-ink-soft uppercase font-semibold">
+                        Cuatrimestres (1 al 11)</h2>
+                    <span class="font-mono text-[10px] text-azure font-medium">11 Niveles</span>
+                </div>
+                <nav id="sidebar-cuatri-nav"
+                    class="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-1 max-h-[280px] overflow-y-auto pr-1">
+                    <!-- Cuatrimestres 1-11 rendered by JS -->
+                </nav>
+            </div>
+
+            <!-- Dynamic Materias Section by Cuatrimestre -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <h2 id="sidebar-topic-heading"
+                        class="font-mono text-[11px] tracking-[0.2em] text-ink-soft uppercase font-semibold">Materias
+                    </h2>
+                    <span id="sidebar-topic-sublabel" class="font-mono text-[10px] text-ink-soft/70"></span>
+                </div>
+                <nav id="sidebar-topic-nav" class="flex flex-col gap-1 max-h-[320px] overflow-y-auto pr-1">
+                    <!-- Materias rendered dynamically by JS depending on selected Cuatrimestre -->
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="min-w-0 flex flex-col">
+            <!-- Search & Controls Bar -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <label class="relative min-w-[14rem] flex-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-search absolute top-1/2 left-3 -translate-y-1/2 text-ink-soft">
+                        <path d="m21 21-4.34-4.34"></path>
+                        <circle cx="11" cy="11" r="8"></circle>
+                    </svg>
+                    <input id="search-input" placeholder="Buscar materia, autor, nota, DOI, cuatrimestre…"
+                        class="field py-2.5 pl-9" oninput="handleSearch()" />
+                </label>
+
+                <select id="cuatrimestre-filter" class="field w-auto py-2.5 cursor-pointer font-mono text-xs"
+                    onchange="handleCuatrimestreSelectChange(this.value)">
+                    <option value="" selected>Todos los cuatrimestres</option>
+                    <option value="C1">Cuatrimestre 1 (C1)</option>
+                    <option value="C2">Cuatrimestre 2 (C2)</option>
+                    <option value="C3">Cuatrimestre 3 (C3)</option>
+                    <option value="C4">Cuatrimestre 4 (C4)</option>
+                    <option value="C5">Cuatrimestre 5 (C5)</option>
+                    <option value="C6">Cuatrimestre 6 (C6)</option>
+                    <option value="C7">Cuatrimestre 7 (C7)</option>
+                    <option value="C8">Cuatrimestre 8 (C8)</option>
+                    <option value="C9">Cuatrimestre 9 (C9)</option>
+                    <option value="C10">Cuatrimestre 10 (C10)</option>
+                    <option value="C11">Cuatrimestre 11 (C11)</option>
+                </select>
+
+                <select id="type-filter" class="field w-auto py-2.5 cursor-pointer" onchange="handleFilterChange()">
+                    <option value="" selected>Todos los tipos</option>
+                    <option value="book">Libro</option>
+                    <option value="handbook">Manual / Handbook</option>
+                    <option value="article">Artículo de revista</option>
+                    <option value="paper">Ponencia / Conferencia</option>
+                    <option value="standard">Norma / Código</option>
+                    <option value="patent">Patente</option>
+                    <option value="thesis">Tesis / Proyecto</option>
+                    <option value="web">Recurso Web</option>
+                </select>
+
+                <select id="sort-filter" class="field w-auto py-2.5 cursor-pointer" onchange="handleFilterChange()">
+                    <option value="recent" selected>Añadidos recientemente</option>
+                    <option value="year-desc">Más recientes primero</option>
+                    <option value="year-asc">Más antiguos primero</option>
+                    <option value="title">Título A–Z</option>
+                </select>
+
+                <button id="export-bib-btn" onclick="exportBibTeX()" title="Descargar vista actual en formato BibTeX"
+                    class="inline-flex items-center gap-2 rounded-sm border border-rule bg-card px-3 py-2.5 text-sm text-ink-soft transition hover:border-ink hover:text-ink disabled:opacity-40 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-download">
+                        <path d="M12 15V3"></path>
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <path d="m7 10 5 5 5-5"></path>
+                    </svg>
+                    <span class="font-mono text-xs">.bib</span>
+                </button>
+
+                <button onclick="openModal()"
+                    class="inline-flex items-center gap-2 rounded-sm bg-azure px-4 py-2.5 text-sm font-medium text-card shadow-[3px_3px_0_var(--tw-shadow-color)] shadow-ink transition hover:-translate-y-px hover:bg-azure-dark cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-plus">
+                        <path d="M5 12h14"></path>
+                        <path d="M12 5v14"></path>
+                    </svg>
+                    Añadir referencia
+                </button>
+            </div>
+
+            <!-- Status counter and active filter indicator -->
+            <div class="mt-5 mb-3 flex flex-wrap items-center justify-between gap-2 font-mono text-xs text-ink-soft">
+                <div>
+                    <span id="entries-count-display">0 de 0 entradas</span>
+                    <span id="active-filter-label" class="ml-2 text-azure font-medium"></span>
+                </div>
+                <button id="clear-filters-btn" onclick="resetFilters()"
+                    class="hidden text-azure underline hover:text-azure-dark cursor-pointer">Limpiar filtros</button>
+            </div>
+
+            <div id="shelf-container" class="flex-1">
+                <!-- Content injected dynamically: Empty Shelf OR List of Cards -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mx-auto max-w-7xl w-full px-6 py-10 font-mono text-[11px] tracking-wider text-ink-soft/70 uppercase">
+        Retort · Mantén tus fuentes más cerca que tus tablas de vapor
+    </footer>
+
+    <!-- Disclaimer Modal -->
+    <div id="disclaimer-modal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4 hidden">
+        <div class="bg-card border-2 border-ink p-6 sm:p-8 max-w-lg w-full shadow-[6px_6px_0_#0F1B29] relative">
+            <div class="flex justify-between items-center mb-4 border-b border-rule pb-3">
+                <div class="flex items-center gap-2">
+                    <span
+                        class="grid h-7 w-7 place-items-center rounded-full bg-azure text-white font-mono font-bold text-xs">?</span>
+                    <h3 class="font-display text-xl sm:text-2xl font-semibold text-ink">Aviso Legal y Educativo</h3>
+                </div>
+                <button onclick="closeDisclaimerModal()"
+                    class="text-ink-soft hover:text-ink font-mono text-lg p-1 cursor-pointer">✕</button>
+            </div>
+
+            <div class="space-y-3.5 text-sm text-ink/90 leading-relaxed font-sans">
+                <p>
+                    Esta página web ha sido creada exclusivamente con <strong>fines educativos y de consulta
+                        académica</strong> para materias universitarias.
+                </p>
+                <p>
+                    <strong>No se alojan ni se tienen copias de libros, archivos PDF ni materiales protegidos
+                        almacenados en este sitio web.</strong> Únicamente se proporcionan enlaces a documentos y
+                    recursos web relacionados con las materias de la carrera.
+                </p>
+                <div class="p-3.5 bg-paper border-l-4 border-azure text-xs font-mono text-ink-soft space-y-2">
+                    <p class="font-semibold text-ink uppercase tracking-wider">Contacto para retiro de enlaces:</p>
+                    <p>
+                        En caso de que algún enlace o vínculo resulte inconveniente siendo usted el dueño del documento
+                        original, puede enviar un correo a:
+                    </p>
+                    <p class="font-bold text-azure text-sm select-all">
+                        📧 zleonardo050@gmail.com
+                    </p>
+                    <p>para que dicho enlace sea retirado de la página a la brevedad posible.</p>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-3 border-t border-rule flex justify-end">
+                <button onclick="closeDisclaimerModal()"
+                    class="px-5 py-2 bg-ink text-paper font-mono text-xs uppercase font-medium rounded-sm hover:bg-azure transition cursor-pointer">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form (Add / Edit Reference) -->
+    <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-4 hidden">
+        <div
+            class="bg-card border-2 border-ink p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#0F1B29]">
+            <div class="flex justify-between items-center mb-5 border-b border-rule pb-3">
+                <h3 id="modal-title" class="font-display text-2xl font-semibold text-ink">Añadir Nueva Referencia</h3>
+                <button onclick="closeModal()" class="text-ink-soft hover:text-ink font-mono text-lg p-1">✕</button>
+            </div>
+
+            <form id="ref-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="ref-id">
+
+                <div>
+                    <label class="block font-mono text-xs text-ink-soft uppercase mb-1">Título de la Referencia *</label>
+                    <input type="text" id="ref-title" required class="field"
+                        placeholder="ej. Fundamentos de Química Básica">
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-mono text-xs text-ink-soft uppercase">Cita Completa / Texto de Citado</label>
+                        <span class="font-mono text-[10px] text-azure font-medium">Cita formateada completa</span>
+                    </div>
+                    <textarea id="ref-citation-text" rows="2" class="field resize-none font-mono text-xs"
+                        placeholder="ej. Chang, R., & Goldsby, K. A. (2021). Química General e Introducción (12ª ed.). McGraw-Hill Education."></textarea>
+                    <p class="mt-1 text-[11px] text-ink-soft/80">Ingresa directamente la cita completa formateada (APA, IEEE, Vancouver) para copiarla en texto completo con un solo clic.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-mono text-xs text-ink-soft uppercase mb-1">Autores</label>
+                        <input type="text" id="ref-authors" class="field"
+                            placeholder="ej. Raymond Chang, Kenneth A. Goldsby">
+                    </div>
+                    <div>
+                        <label class="block font-mono text-xs text-ink-soft uppercase mb-1">Año</label>
+                        <input type="number" id="ref-year" min="1800" max="2030" class="field"
+                            placeholder="2021">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block font-mono text-xs text-ink-soft uppercase mb-1">Tipo de Publicación</label>
+                        <select id="ref-type" class="field cursor-pointer">
+                            <option value="book">Libro</option>
+                            <option value="handbook">Manual / Handbook</option>
+                            <option value="article">Artículo de revista</option>
+                            <option value="paper">Ponencia / Conferencia</option>
+                            <option value="standard">Norma / Código</option>
+                            <option value="patent">Patente</option>
+                            <option value="thesis">Tesis / Proyecto</option>
+                            <option value="web">Recurso Web</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-mono text-xs text-ink-soft uppercase mb-1">Cuatrimestre</label>
+                        <select id="ref-cuatrimestre" class="field cursor-pointer"
+                            onchange="handleModalCuatriChange(this.value)">
+                            <option value="">Sin asignar</option>
+                            <option value="C1">Cuatrimestre 1 (C1)</option>
+                            <option value="C2">Cuatrimestre 2 (C2)</option>
+                            <option value="C3">Cuatrimestre 3 (C3)</option>
+                            <option value="C4">Cuatrimestre 4 (C4)</option>
+                            <option value="C5">Cuatrimestre 5 (C5)</option>
+                            <option value="C6">Cuatrimestre 6 (C6)</option>
+                            <option value="C7">Cuatrimestre 7 (C7)</option>
+                            <option value="C8">Cuatrimestre 8 (C8)</option>
+                            <option value="C9">Cuatrimestre 9 (C9)</option>
+                            <option value="C10">Cuatrimestre 10 (C10)</option>
+                            <option value="C11">Cuatrimestre 11 (C11)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-mono text-xs text-ink-soft uppercase mb-1">Materia *</label>
+                        <select id="ref-topic" required class="field cursor-pointer">
+                            <!-- Populated dynamically depending on selected Cuatrimestre -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-mono text-xs text-ink-soft uppercase mb-1">Editorial / Revista /
+                            Organización</label>
+                        <input type="text" id="ref-publisher" class="field" placeholder="ej. McGraw-Hill Education">
+                    </div>
+                    <div>
+                        <label class="block font-mono text-xs text-ink-soft uppercase mb-1">DOI / Enlace URL</label>
+                        <input type="text" id="ref-doi" class="field"
+                            placeholder="https://recurso-educativo.org/doc.pdf">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-mono text-xs text-ink-soft uppercase mb-1">Notas de Trabajo / Capítulos
+                        Clave</label>
+                    <textarea id="ref-notes" rows="3" class="field resize-none"
+                        placeholder="Capítulos clave: Estequiometría, estructura atómica, soluciones en laboratorio..."></textarea>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="ref-starred"
+                        class="w-4 h-4 text-azure border-rule rounded focus:ring-0 cursor-pointer">
+                    <label for="ref-starred" class="font-mono text-xs text-ink cursor-pointer">Marcar como Referencia
+                        Destacada ⭐</label>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-rule">
+                    <button type="button" onclick="closeModal()"
+                        class="px-4 py-2 border border-rule text-sm hover:bg-paper-2 rounded-sm cursor-pointer">Cancelar</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-azure text-card font-medium text-sm rounded-sm hover:bg-azure-dark cursor-pointer">Guardar
+                        Referencia</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Master definition of 11 University Cuatrimestres
+        const CUATRIMESTRES = [
+            { code: 'C1', number: 1, name: 'Cuatrimestre 1', label: '1.er Cuatrimestre' },
+            { code: 'C2', number: 2, name: 'Cuatrimestre 2', label: '2.º Cuatrimestre' },
+            { code: 'C3', number: 3, name: 'Cuatrimestre 3', label: '3.er Cuatrimestre' },
+            { code: 'C4', number: 4, name: 'Cuatrimestre 4', label: '4.º Cuatrimestre' },
+            { code: 'C5', number: 5, name: 'Cuatrimestre 5', label: '5.º Cuatrimestre' },
+            { code: 'C6', number: 6, name: 'Cuatrimestre 6', label: '6.º Cuatrimestre' },
+            { code: 'C7', number: 7, name: 'Cuatrimestre 7', label: '7.º Cuatrimestre' },
+            { code: 'C8', number: 8, name: 'Cuatrimestre 8', label: '8.º Cuatrimestre' },
+            { code: 'C9', number: 9, name: 'Cuatrimestre 9', label: '9.º Cuatrimestre' },
+            { code: 'C10', number: 10, name: 'Cuatrimestre 10', label: '10.º Cuatrimestre' },
+            { code: 'C11', number: 11, name: 'Cuatrimestre 11', label: '11.er Cuatrimestre' }
+        ];
+
+        // Specific subjects/materias grouped by Cuatrimestre (with C1 specifically updated)
+        const SUBJECTS_BY_CUATRI = {
+            'C1': [
+                { code: 'QB', name: 'Química Básica' },
+                { code: 'DV', name: 'Desarrollo y Valores' },
+                { code: 'CM', name: 'Comunicación' },
+                { code: 'BP', name: 'Buenas Prácticas de Laboratorio' },
+                { code: 'ING1', name: 'Inglés' },
+                { code: 'FM', name: 'Fundamentos Matemáticos' }
+            ],
+            'C2': [
+                { code: 'QO', name: 'Química Orgánica' },
+                { code: 'FIS1', name: 'Física I' },
+                { code: 'CD', name: 'Cálculo Diferencial' },
+                { code: 'ING2', name: 'Inglés II' },
+                { code: 'FH', name: 'Formación Humana' },
+                { code: 'DFP', name: 'Diagramas de Flujo y Procesos' }
+            ],
+            'C3': [
+                { code: 'BME', name: 'Balances de Materia y Energía' },
+                { code: 'FIS2', name: 'Física II' },
+                { code: 'CI', name: 'Cálculo Integral' },
+                { code: 'TH1', name: 'Termodinámica I' },
+                { code: 'FQ1', name: 'Fisicoquímica' },
+                { code: 'ING3', name: 'Inglés III' }
+            ],
+            'C4': [
+                { code: 'TH2', name: 'Termodinámica II' },
+                { code: 'TP1', name: 'Fenómenos de Transporte I' },
+                { code: 'MN', name: 'Métodos Numéricos' },
+                { code: 'EST', name: 'Estadística' },
+                { code: 'QA', name: 'Química Analítica' },
+                { code: 'ING4', name: 'Inglés IV' }
+            ],
+            'C5': [
+                { code: 'TP2', name: 'Fenómenos de Transporte II' },
+                { code: 'UO1', name: 'Operaciones Unitarias I' },
+                { code: 'ED', name: 'Ecuaciones Diferenciales' },
+                { code: 'FQI', name: 'Fisicoquímica de Interfases' },
+                { code: 'ING5', name: 'Inglés V' }
+            ],
+            'C6': [
+                { code: 'UO2', name: 'Operaciones Unitarias II' },
+                { code: 'TC', name: 'Transferencia de Calor' },
+                { code: 'DFL', name: 'Dinámica de Fluidos' },
+                { code: 'INST', name: 'Instrumentación' },
+                { code: 'ING6', name: 'Inglés VI' }
+            ],
+            'C7': [
+                { code: 'UO3', name: 'Operaciones Unitarias III' },
+                { code: 'TM', name: 'Transferencia de Masa' },
+                { code: 'RX1', name: 'Ingeniería de Reactores I' },
+                { code: 'SIM', name: 'Simulación de Procesos' },
+                { code: 'ING7', name: 'Inglés VII' }
+            ],
+            'C8': [
+                { code: 'RX2', name: 'Ingeniería de Reactores II' },
+                { code: 'PC', name: 'Control de Procesos' },
+                { code: 'SI', name: 'Seguridad Industrial' },
+                { code: 'DEQ', name: 'Diseño de Equipos' },
+                { code: 'ING8', name: 'Inglés VIII' }
+            ],
+            'C9': [
+                { code: 'DP', name: 'Diseño de Plantas Químicas' },
+                { code: 'OPT', name: 'Optimización de Procesos' },
+                { code: 'AP', name: 'Administración de Proyectos' },
+                { code: 'GA', name: 'Gestión Ambiental' },
+                { code: 'ING9', name: 'Inglés IX' }
+            ],
+            'C10': [
+                { code: 'EP', name: 'Economía de Procesos' },
+                { code: 'EVP', name: 'Evaluación de Proyectos' },
+                { code: 'DS', name: 'Desarrollo Sustentable' },
+                { code: 'TI', name: 'Taller de Investigación' },
+                { code: 'EST1', name: 'Estadías I' }
+            ],
+            'C11': [
+                { code: 'PT', name: 'Proyecto Terminal' },
+                { code: 'EP2', name: 'Ética Profesional' },
+                { code: 'IP', name: 'Integración de Procesos' },
+                { code: 'GC', name: 'Gestión de Calidad' },
+                { code: 'EST2', name: 'Estadías II' }
+            ]
+        };
+
+        // Helper to get all subjects in a flat array
+        function getAllSubjects() {
+            const list = [];
+            Object.keys(SUBJECTS_BY_CUATRI).forEach(cCode => {
+                SUBJECTS_BY_CUATRI[cCode].forEach(sub => {
+                    if (!list.find(s => s.code === sub.code)) {
+                        list.push({ ...sub, cuatrimestre: cCode });
+                    }
+                });
+            });
+            return list;
+        }
+
+        // Helper to lookup subject name by code
+        function getSubjectName(code) {
+            const all = getAllSubjects();
+            const found = all.find(s => s.code === code);
+            return found ? found.name : code;
+        }
+
+        // Readable publication types in Spanish
+        const TYPE_NAMES = {
+            book: 'Libro',
+            handbook: 'Manual',
+            article: 'Artículo',
+            paper: 'Ponencia',
+            standard: 'Norma',
+            patent: 'Patente',
+            thesis: 'Tesis',
+            web: 'Recurso Web'
+        };
+
+        // Predefined educational references mapped to the curriculum subjects
+        const CLASSIC_BOOKS = [
+            {
+                id: 'classic-1',
+                title: "Química General y Básica para Ciencias e Ingeniería",
+                authors: "Raymond Chang, Kenneth A. Goldsby",
+                year: 2021,
+                type: "book",
+                topic: "QB",
+                cuatrimestre: "C1",
+                publisher: "McGraw-Hill Education",
+                doi: "ISBN: 978-1456284567",
+                notes: "Referencia fundamental para el estudio de la estequiometría, estructura atómica, enlace químico y propiedades de la materia.",
+                starred: true,
+                createdAt: Date.now() - 150000
+            },
+            {
+                id: 'classic-2',
+                title: "Cálculo de Una Variable: Fundamentos Matemáticos",
+                authors: "James Stewart",
+                year: 2018,
+                type: "book",
+                topic: "FM",
+                cuatrimestre: "C1",
+                publisher: "Cengage Learning",
+                doi: "ISBN: 978-6075265521",
+                notes: "Límites, derivadas, integrales y funciones trascendentes indispensables para el razonamiento en ingeniería.",
+                starred: true,
+                createdAt: Date.now() - 140000
+            },
+            {
+                id: 'classic-3',
+                title: "Manual de Buenas Prácticas de Laboratorio Químico",
+                authors: "Organización Panamericana de la Salud (OPS)",
+                year: 2019,
+                type: "standard",
+                topic: "BP",
+                cuatrimestre: "C1",
+                publisher: "OPS / OMS",
+                doi: "https://www.paho.org/es/documentos/buenas-practicas-laboratorio",
+                notes: "Guía esencial sobre bioseguridad, manejo de reactivos, etiquetado y protocolos en el laboratorio.",
+                starred: false,
+                createdAt: Date.now() - 130000
+            },
+            {
+                id: 'classic-4',
+                title: "Comunicación Científica y Técnica para Ingenieros",
+                authors: "Carlos González, María Elena Pérez",
+                year: 2020,
+                type: "book",
+                topic: "CM",
+                cuatrimestre: "C1",
+                publisher: "Editorial Trillas",
+                doi: "ISBN: 978-6071739221",
+                notes: "Estrategias de redacción de reportes técnicos, presentación de datos de laboratorio y expresión oral académica.",
+                starred: false,
+                createdAt: Date.now() - 120000
+            },
+            {
+                id: 'classic-5',
+                title: "Desarrollo Humano, Ética y Valores en las Ciencias",
+                authors: "Adela Cortina",
+                year: 2017,
+                type: "book",
+                topic: "DV",
+                cuatrimestre: "C1",
+                publisher: "Editorial Tecnos",
+                doi: "ISBN: 978-8430971234",
+                notes: "Fundamentos sobre la responsabilidad ética, trabajo en equipo y compromiso social en el ejercicio profesional.",
+                starred: false,
+                createdAt: Date.now() - 110000
+            },
+            {
+                id: 'classic-6',
+                title: "Technical English for Science and Technology",
+                authors: "Mark Ibbotson",
+                year: 2018,
+                type: "book",
+                topic: "ING1",
+                cuatrimestre: "C1",
+                publisher: "Cambridge University Press",
+                doi: "ISBN: 978-0521715188",
+                notes: "Vocabulario especializado, lectura de artículos científicos y terminología técnica en idioma inglés.",
+                starred: false,
+                createdAt: Date.now() - 100000
+            },
+            {
+                id: 'classic-7',
+                title: "Principios Elementales de los Procesos Químicos",
+                authors: "Richard M. Felder, Ronald W Rousseau",
+                year: 2015,
+                type: "book",
+                topic: "BME",
+                cuatrimestre: "C3",
+                publisher: "John Wiley & Sons",
+                doi: "ISBN: 978-0470616291",
+                notes: "Balances de materia y energía, sistemas de combustión, recirculación y cartas psicrométricas.",
+                starred: true,
+                createdAt: Date.now() - 90000
+            },
+            {
+                id: 'classic-8',
+                title: "Introducción a la Termodinámica en Ingeniería Química",
+                authors: "J. M. Smith, H. C. Van Ness",
+                year: 2017,
+                type: "book",
+                topic: "TH2",
+                cuatrimestre: "C4",
+                publisher: "McGraw-Hill",
+                doi: "ISBN: 978-1259696527",
+                notes: "Equilibrio de fases, ecuaciones de estado, fugacidad y equilibrio líquido-vapor (ELV).",
+                starred: true,
+                createdAt: Date.now() - 80000
+            },
+            {
+                id: 'classic-9',
+                title: "Fenómenos de Transporte",
+                authors: "R. Byron Bird, Warren E. Stewart, Edwin N. Lightfoot",
+                year: 2002,
+                type: "book",
+                topic: "TP2",
+                cuatrimestre: "C5",
+                publisher: "John Wiley & Sons",
+                doi: "10.1002/0471410772",
+                notes: "Standard clásico BSL para balances de momento, energía y transferencia de masa.",
+                starred: true,
+                createdAt: Date.now() - 70000
+            },
+            {
+                id: 'classic-10',
+                title: "Operaciones Unitarias en Ingeniería Química",
+                authors: "Warren L. McCabe, Julian C. Smith",
+                year: 2005,
+                type: "book",
+                topic: "UO2",
+                cuatrimestre: "C6",
+                publisher: "McGraw-Hill",
+                doi: "ISBN: 978-0072848236",
+                notes: "Destilación, extracción, secado, manejo de sólidos y evaporación.",
+                starred: false,
+                createdAt: Date.now() - 60000
+            },
+            {
+                id: 'classic-11',
+                title: "Principios de Procesos de Separación",
+                authors: "J. D. Seader, Ernest J. Henley",
+                year: 2010,
+                type: "book",
+                topic: "TM",
+                cuatrimestre: "C7",
+                publisher: "John Wiley & Sons",
+                doi: "ISBN: 978-0470481837",
+                notes: "Destilación basada en transferencia de masa, absorción de gases y membranas.",
+                starred: false,
+                createdAt: Date.now() - 50000
+            },
+            {
+                id: 'classic-12',
+                title: "Ingeniería de la Reacción Química",
+                authors: "Octave Levenspiel",
+                year: 1998,
+                type: "book",
+                topic: "RX2",
+                cuatrimestre: "C8",
+                publisher: "John Wiley & Sons",
+                doi: "ISBN: 978-0471254249",
+                notes: "Dimensionamiento de reactores batch, CSTR, PFR y cinética química.",
+                starred: true,
+                createdAt: Date.now() - 40000
+            },
+            {
+                id: 'classic-13',
+                title: "Dinámica y Control de Procesos",
+                authors: "Dale E. Seborg, Thomas F. Edgar",
+                year: 2016,
+                type: "book",
+                topic: "PC",
+                cuatrimestre: "C8",
+                publisher: "John Wiley & Sons",
+                doi: "ISBN: 978-1118965160",
+                notes: "Funciones de transferencia, control PID y estabilidad de procesos.",
+                starred: false,
+                createdAt: Date.now() - 30000
+            },
+            {
+                id: 'classic-14',
+                title: "Seguridad en Procesos Químicos: Fundamentos",
+                authors: "Daniel A. Crowl, Joseph F. Louvar",
+                year: 2019,
+                type: "book",
+                topic: "SI",
+                cuatrimestre: "C8",
+                publisher: "Pearson",
+                doi: "ISBN: 978-0134857770",
+                notes: "Identificación de riesgos, modelo de dispersión de tóxicos y válvulas de alivio.",
+                starred: false,
+                createdAt: Date.now() - 20000
+            },
+            {
+                id: 'classic-15',
+                title: "Análisis, Síntesis y Diseño de Procesos Químicos",
+                authors: "Richard Turton, Richard C. Bailie",
+                year: 2018,
+                type: "book",
+                topic: "DP",
+                cuatrimestre: "C9",
+                publisher: "Prentice Hall",
+                doi: "ISBN: 978-0134177403",
+                notes: "Diagramas PFD/P&ID, estimación de costos de plantas (CAPEX/OPEX).",
+                starred: false,
+                createdAt: Date.now() - 10000
+            }
+        ];
+
+        // Configurar cliente de Supabase
+        const SUPABASE_URL = 'https://qpiremmsmfwdgugagcli.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable__H3LO_02viJTSogfgapA9w_G464FzUc';
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let references = [];
+        let currentCuatriFilter = 'all'; // 'all', 'starred', or 'C1'..'C11'
+        let currentTopicFilter = 'all';  // 'all' or subject code ('QB', 'FM', etc.)
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            renderSidebarNav();
+            updateUI();
+        });
+
+        // LocalStorage Management & Fallback
+        function saveToLocalStorage() {
+            localStorage.setItem('retort_references_v1', JSON.stringify(references));
+        }
+
+        // Cargar referencias desde Supabase al iniciar
+        async function loadFromLocalStorage() {
+            try {
+                const { data, error } = await _supabase
+                    .from('referencias')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    // Mapear los nombres de columnas
+                    references = data.map(item => ({
+                        id: item.id,
+                        title: item.title,
+                        authors: item.authors || '',
+                        year: item.year || '',
+                        type: item.type || 'book',
+                        cuatrimestre: item.cuatrimestre || '',
+                        topic: item.topic || '',
+                        publisher: item.publisher || '',
+                        doi: item.doi || '',
+                        notes: item.notes || '',
+                        starred: !!item.starred,
+                        citationText: item.citation_text || item.citationText || '',
+                        createdAt: item.created_at || Date.now()
+                    }));
+
+                    // Guardar copia local de respaldo
+                    localStorage.setItem('retort_references_v1', JSON.stringify(references));
+                    renderSidebarNav();
+                    updateUI();
+                    return;
+                }
+            } catch (err) {
+                console.error('Error al cargar de Supabase, usando localStorage:', err);
+            }
+
+            // Respaldo: si falla la red o Supabase está vacío, cargar de localStorage
+            const stored = localStorage.getItem('retort_references_v1');
+            if (stored) {
+                try { references = JSON.parse(stored); } catch (e) { references = []; }
+            }
+            renderSidebarNav();
+            updateUI();
+        }
+
+        function renderSidebarNav() {
+            // Counts calculation
+            const cuatriCounts = {};
+            CUATRIMESTRES.forEach(c => cuatriCounts[c.code] = 0);
+            let starredCount = 0;
+
+            references.forEach(r => {
+                if (r.cuatrimestre && cuatriCounts[r.cuatrimestre] !== undefined) {
+                    cuatriCounts[r.cuatrimestre]++;
+                }
+                if (r.starred) starredCount++;
+            });
+
+            const totalCount = references.length;
+
+            // Render Main Navigation
+            const mainNav = document.getElementById('sidebar-main-nav');
+            mainNav.innerHTML = `
+                <button onclick="setCuatriFilter('all')" class="flex items-center gap-3 rounded-sm px-2.5 py-2 text-left text-sm transition cursor-pointer ${currentCuatriFilter === 'all' && currentTopicFilter === 'all' ? 'bg-ink text-paper font-medium' : 'text-ink-soft hover:bg-paper-2 hover:text-ink'}">
+                    <span class="grid h-6 w-7 place-items-center border font-mono text-[10px] font-medium ${currentCuatriFilter === 'all' && currentTopicFilter === 'all' ? 'border-paper/40 text-paper' : 'border-rule text-azure'}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-marked"><path d="M10 2v8l3-3 3 3V2"></path><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"></path></svg>
+                    </span>
+                    <span class="flex-1">Todas las referencias</span>
+                    <span class="font-mono text-[11px] ${currentCuatriFilter === 'all' && currentTopicFilter === 'all' ? 'text-paper/80' : 'text-ink-soft/60'}">${totalCount}</span>
+                </button>
+
+                <button onclick="setCuatriFilter('starred')" class="flex items-center gap-3 rounded-sm px-2.5 py-2 text-left text-sm transition cursor-pointer ${currentCuatriFilter === 'starred' ? 'bg-ink text-paper font-medium' : 'text-ink-soft hover:bg-paper-2 hover:text-ink'}">
+                    <span class="grid h-6 w-7 place-items-center border font-mono text-[10px] font-medium ${currentCuatriFilter === 'starred' ? 'border-paper/40 text-paper' : 'border-rule text-azure'}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg>
+                    </span>
+                    <span class="flex-1">Destacadas</span>
+                    <span class="font-mono text-[11px] ${currentCuatriFilter === 'starred' ? 'text-paper/80' : 'text-ink-soft/60'}">${starredCount}</span>
+                </button>
+            `;
+
+            // Render Cuatrimestres Navigation
+            const cuatriNav = document.getElementById('sidebar-cuatri-nav');
+            let cuatriHtml = '';
+            CUATRIMESTRES.forEach(c => {
+                const isActive = currentCuatriFilter === c.code;
+                const count = cuatriCounts[c.code] || 0;
+
+                cuatriHtml += `
+                    <button onclick="setCuatriFilter('${c.code}')" title="${c.name}" class="flex items-center justify-between rounded-sm border px-2 py-1.5 text-left text-xs transition cursor-pointer ${isActive ? 'bg-ink text-paper border-ink font-medium' : 'border-rule/80 text-ink-soft hover:border-ink hover:text-ink bg-card'}">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span class="font-mono text-[10px] font-bold px-1 rounded ${isActive ? 'bg-azure text-white' : 'bg-paper-2 text-azure'}">${c.code}</span>
+                            <span class="truncate">${c.name}</span>
+                        </div>
+                        <span class="font-mono text-[10px] ml-1 ${isActive ? 'text-paper/80' : 'text-ink-soft/60'}">${count}</span>
+                    </button>
+                `;
+            });
+            cuatriNav.innerHTML = cuatriHtml;
+
+            // Render Dynamic Materias Section depending on selected Cuatrimestre
+            renderDynamicMaterias();
+        }
+
+        function renderDynamicMaterias() {
+            const topicHeading = document.getElementById('sidebar-topic-heading');
+            const topicSublabel = document.getElementById('sidebar-topic-sublabel');
+            const topicNav = document.getElementById('sidebar-topic-nav');
+
+            let subjectsList = [];
+            if (currentCuatriFilter.startsWith('C')) {
+                const cObj = CUATRIMESTRES.find(c => c.code === currentCuatriFilter);
+                topicHeading.textContent = `Materias (${currentCuatriFilter})`;
+                topicSublabel.textContent = cObj ? cObj.name : '';
+                subjectsList = SUBJECTS_BY_CUATRI[currentCuatriFilter] || [];
+            } else {
+                topicHeading.textContent = 'Áreas del Conocimiento';
+                topicSublabel.textContent = 'Todas';
+                subjectsList = getAllSubjects();
+            }
+
+            let topicHtml = '';
+            subjectsList.forEach(sub => {
+                const isActive = currentTopicFilter === sub.code;
+
+                // Count matching references for this subject
+                const count = references.filter(r => {
+                    if (currentCuatriFilter.startsWith('C') && r.cuatrimestre !== currentCuatriFilter) return false;
+                    return r.topic === sub.code;
+                }).length;
+
+                topicHtml += `
+                    <button onclick="setTopicFilter('${sub.code}')" class="flex items-center gap-2 rounded-sm px-2 py-1.5 text-left text-xs whitespace-nowrap transition cursor-pointer ${isActive ? 'bg-ink text-paper font-medium' : 'text-ink-soft hover:bg-paper-2 hover:text-ink'}">
+                        <span class="grid h-5 w-6 place-items-center border font-mono text-[9px] font-medium ${isActive ? 'border-paper/40 text-paper' : 'border-rule text-azure'}">${sub.code}</span>
+                        <span class="flex-1 truncate">${sub.name}</span>
+                        <span class="font-mono text-[10px] ${isActive ? 'text-paper/80' : 'text-ink-soft/60'}">${count}</span>
+                    </button>
+                `;
+            });
+
+            if (subjectsList.length === 0) {
+                topicHtml = `<p class="text-xs text-ink-soft/70 italic px-2 py-1">Sin materias asignadas</p>`;
+            }
+
+            topicNav.innerHTML = topicHtml;
+        }
+
+        function setCuatriFilter(cuatriCode) {
+            currentCuatriFilter = cuatriCode;
+            currentTopicFilter = 'all'; // Reset subject filter on cuatrimestre change
+
+            // Sync top dropdown
+            const selectEl = document.getElementById('cuatrimestre-filter');
+            if (cuatriCode.startsWith('C')) {
+                selectEl.value = cuatriCode;
+            } else {
+                selectEl.value = '';
+            }
+
+            renderSidebarNav();
+            updateUI();
+        }
+
+        function setTopicFilter(topicCode) {
+            if (currentTopicFilter === topicCode) {
+                currentTopicFilter = 'all'; // toggle off
+            } else {
+                currentTopicFilter = topicCode;
+            }
+            renderDynamicMaterias();
+            updateUI();
+        }
+
+        function handleCuatrimestreSelectChange(val) {
+            if (val) {
+                setCuatriFilter(val);
+            } else {
+                setCuatriFilter('all');
+            }
+        }
+
+        function handleSearch() { updateUI(); }
+        function handleFilterChange() { updateUI(); }
+
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('cuatrimestre-filter').value = '';
+            document.getElementById('type-filter').value = '';
+            document.getElementById('sort-filter').value = 'recent';
+            currentCuatriFilter = 'all';
+            currentTopicFilter = 'all';
+            renderSidebarNav();
+            updateUI();
+        }
+
+        function updateStats() {
+            const total = references.length;
+            const starred = references.filter(r => r.starred).length;
+
+            // Unique subjects with references
+            const activeTopics = new Set(references.map(r => r.topic));
+            const topicsCount = activeTopics.size;
+
+            // Unique cuatrimestres with references
+            const activeCuatris = new Set(references.map(r => r.cuatrimestre).filter(Boolean));
+            const cuatriCount = activeCuatris.size;
+
+            document.getElementById('stat-entries').textContent = total;
+            document.getElementById('stat-cuatrimestres').textContent = `${cuatriCount} / 11`;
+            document.getElementById('stat-topics').textContent = topicsCount;
+            document.getElementById('stat-starred').textContent = starred;
+
+            const exportBtn = document.getElementById('export-bib-btn');
+            if (total === 0) {
+                exportBtn.setAttribute('disabled', 'true');
+            } else {
+                exportBtn.removeAttribute('disabled');
+            }
+        }
+
+        function getFilteredReferences() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            const selectedType = document.getElementById('type-filter').value;
+            const sortBy = document.getElementById('sort-filter').value;
+
+            return references.filter(ref => {
+                // Starred filter
+                if (currentCuatriFilter === 'starred' && !ref.starred) return false;
+
+                // Cuatrimestre filter
+                if (currentCuatriFilter.startsWith('C') && ref.cuatrimestre !== currentCuatriFilter) return false;
+
+                // Specific Subject/Materia filter
+                if (currentTopicFilter !== 'all' && ref.topic !== currentTopicFilter) return false;
+
+                // Type filter
+                if (selectedType && ref.type !== selectedType) return false;
+
+                // Text Search query
+                if (query) {
+                    const cuatriObj = CUATRIMESTRES.find(c => c.code === ref.cuatrimestre);
+                    const subjectName = getSubjectName(ref.topic);
+                    const cuatriSearchStr = cuatriObj ? `${cuatriObj.name} ${cuatriObj.label} ${cuatriObj.code}` : '';
+                    const searchable = `${ref.title} ${ref.authors} ${ref.notes || ''} ${ref.doi || ''} ${ref.publisher || ''} ${subjectName} ${ref.topic} ${ref.cuatrimestre || ''} ${cuatriSearchStr}`.toLowerCase();
+                    if (!searchable.includes(query)) return false;
+                }
+
+                return true;
+            }).sort((a, b) => {
+                if (sortBy === 'recent') return (b.createdAt || 0) - (a.createdAt || 0);
+                if (sortBy === 'year-desc') return (b.year || 0) - (a.year || 0);
+                if (sortBy === 'year-asc') return (a.year || 0) - (b.year || 0);
+                if (sortBy === 'title') return a.title.localeCompare(b.title);
+                return 0;
+            });
+        }
+
+        function updateUI() {
+            updateStats();
+            const filtered = getFilteredReferences();
+            const container = document.getElementById('shelf-container');
+            const entriesDisplay = document.getElementById('entries-count-display');
+            const activeFilterLabel = document.getElementById('active-filter-label');
+            const clearBtn = document.getElementById('clear-filters-btn');
+
+            entriesDisplay.textContent = `${filtered.length} de ${references.length} entradas`;
+
+            // Active filter visual tag
+            let filterDesc = [];
+            if (currentCuatriFilter === 'starred') filterDesc.push("Destacadas");
+            else if (currentCuatriFilter.startsWith('C')) {
+                const cObj = CUATRIMESTRES.find(c => c.code === currentCuatriFilter);
+                if (cObj) filterDesc.push(cObj.name);
+            }
+
+            if (currentTopicFilter !== 'all') {
+                filterDesc.push(getSubjectName(currentTopicFilter));
+            }
+
+            const q = document.getElementById('search-input').value.trim();
+            if (q) filterDesc.push(`"${q}"`);
+
+            if (filterDesc.length > 0) {
+                activeFilterLabel.textContent = `(${filterDesc.join(' + ')})`;
+                clearBtn.classList.remove('hidden');
+            } else {
+                activeFilterLabel.textContent = '';
+                clearBtn.classList.add('hidden');
+            }
+
+            // Render States
+            if (references.length === 0) {
+                renderEmptyShelfState(container);
+            } else if (filtered.length === 0) {
+                renderNoSearchResultsState(container);
+            } else {
+                renderReferenceList(container, filtered);
+            }
+        }
+
+        function renderEmptyShelfState(container) {
+            container.innerHTML = `
+                <div class="relative overflow-hidden border border-rule bg-card px-8 py-14 shadow-sm">
+                    <div class="max-w-lg">
+                        <p class="font-mono text-[11px] tracking-[0.2em] text-azure uppercase font-medium">Estantería Vacía</p>
+                        <h2 class="mt-2 font-display text-3xl sm:text-4xl leading-tight">Biblioteca educativa de referencias por materias y cuatrimestres.</h2>
+                        <p class="mt-4 text-ink-soft text-sm sm:text-base leading-relaxed">Organiza enlaces a libros, artículos, normas y manuales clasificados por cuatrimestre universitario (1 al 11) y por materia.</p>
+                        <div class="mt-7 flex flex-wrap gap-3">
+                            <button onclick="openModal()" class="inline-flex items-center gap-2 rounded-sm bg-ink px-5 py-2.5 text-sm font-medium text-paper transition hover:bg-azure cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+                                Añadir primera referencia
+                            </button>
+                            <button onclick="shelveClassics()" class="rounded-sm border border-ink px-5 py-2.5 text-sm font-medium hover:bg-paper-2 cursor-pointer transition">
+                                Cargar referencias educativas de ejemplo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderNoSearchResultsState(container) {
+            container.innerHTML = `
+                <div class="border border-dashed border-rule bg-card/60 p-12 text-center">
+                    <p class="font-mono text-xs text-azure uppercase tracking-wider mb-1">Sin resultados</p>
+                    <p class="text-ink-soft text-sm">No se encontraron referencias para el cuatrimestre o materia seleccionada.</p>
+                    <button onclick="resetFilters()" class="mt-4 inline-flex items-center gap-2 rounded-sm border border-ink px-4 py-2 text-xs font-mono uppercase hover:bg-paper-2 cursor-pointer">Limpiar filtros</button>
+                </div>
+            `;
+        }
+
+        function renderReferenceList(container, list) {
+            let html = '<div class="space-y-4">';
+
+            list.forEach(ref => {
+                const subjectName = getSubjectName(ref.topic);
+                const cuatriObj = CUATRIMESTRES.find(c => c.code === ref.cuatrimestre);
+                const typeLabel = TYPE_NAMES[ref.type] || ref.type || 'Referencia';
+
+                html += `
+                    <div class="border border-rule bg-card p-5 sm:p-6 transition hover:border-ink/60 shadow-sm relative group">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                    <button onclick="setTopicFilter('${ref.topic}')" class="inline-flex items-center gap-1 border border-rule px-2 py-0.5 font-mono text-[10px] font-semibold text-azure uppercase bg-paper/50 hover:bg-azure hover:text-white transition cursor-pointer">
+                                        ${ref.topic} — ${subjectName}
+                                    </button>
+                                    
+                                    ${cuatriObj ? `
+                                        <button onclick="setCuatriFilter('${cuatriObj.code}')" class="inline-flex items-center gap-1 border border-azure/40 bg-azure/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-azure-dark hover:bg-azure hover:text-white transition cursor-pointer">
+                                            <span>${cuatriObj.code}: ${cuatriObj.name}</span>
+                                        </button>
+                                    ` : ''}
+
+                                    <span class="font-mono text-[11px] text-ink-soft uppercase tracking-wider">${typeLabel}</span>
+                                    <span class="font-mono text-[11px] text-ink-soft">• ${ref.year}</span>
+                                </div>
+                                
+                                <h3 class="font-display text-xl sm:text-2xl leading-snug font-semibold text-ink">
+                                    ${ref.title}
+                                </h3>
+
+                                <!-- Cita Completa en Texto -->
+                                <div class="mt-2 p-2.5 bg-paper/60 border-l-2 border-azure/60 text-xs font-mono text-ink/90">
+                                    <span class="text-[10px] text-ink-soft uppercase tracking-wider block font-semibold mb-0.5">Citado Completo:</span>
+                                    <span class="select-all font-sans text-sm text-ink font-medium">${escapeHtml(ref.citationText || (ref.authors ? `${ref.authors} (${ref.year}). ${ref.title}.${ref.publisher ? ' ' + ref.publisher + '.' : ''}` : ref.title))}</span>
+                                </div>
+                                
+                                ${ref.publisher ? `<p class="mt-1 text-xs text-ink-soft/80 italic">${ref.publisher}</p>` : ''}
+                                
+                                ${ref.notes ? `
+                                    <div class="mt-3 p-3 bg-paper/60 border-l-2 border-azure text-xs text-ink-soft leading-relaxed font-mono">
+                                        ${escapeHtml(ref.notes)}
+                                    </div>
+                                ` : ''}
+
+                                ${ref.doi ? `
+                                    <div class="mt-3 flex items-center gap-1 font-mono text-xs text-azure">
+                                        <span>DOI / Enlace:</span>
+                                        <a href="${ref.doi.startsWith('http') ? ref.doi : 'https://doi.org/' + ref.doi}" target="_blank" rel="noopener noreferrer" class="underline hover:text-azure-dark truncate max-w-md">
+                                            ${ref.doi}
+                                        </a>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            <!-- Actions bar -->
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button onclick="toggleStar('${ref.id}')" title="Marcar / Desmarcar Destacada" class="p-1.5 text-ink-soft hover:text-azure transition cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="${ref.starred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${ref.starred ? 'text-azure' : ''}"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg>
+                                </button>
+                                <button onclick="copyCitation('${ref.id}')" title="Copiar Cita APA" class="p-1.5 text-ink-soft hover:text-ink transition cursor-pointer font-mono text-xs border border-rule px-2 py-1 bg-paper/40">
+                                    Citar
+                                </button>
+                                <button onclick="editReference('${ref.id}')" title="Editar Referencia" class="p-1.5 text-ink-soft hover:text-ink transition cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                </button>
+                                <button onclick="deleteReference('${ref.id}')" title="Eliminar Referencia" class="p-1.5 text-ink-soft hover:text-red-600 transition cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Cargar fuentes predeterminadas a Supabase
+        async function shelveClassics() {
+            const formattedBooks = CLASSIC_BOOKS.map(item => ({
+                id: item.id,
+                title: item.title,
+                authors: item.authors,
+                year: item.year,
+                type: item.type,
+                cuatrimestre: item.cuatrimestre,
+                topic: item.topic,
+                publisher: item.publisher,
+                doi: item.doi,
+                notes: item.notes,
+                starred: item.starred,
+                citation_text: item.citationText || `${item.authors} (${item.year}). ${item.title}.${item.publisher ? ' ' + item.publisher + '.' : ''}`,
+                created_at: item.createdAt
+            }));
+
+            try {
+                const { error } = await _supabase.from('referencias').upsert(formattedBooks);
+                if (!error) {
+                    await loadFromLocalStorage();
+                    showToast('¡Referencias cargadas a Supabase!');
+                    return;
+                } else {
+                    console.error('Error en Supabase upsert:', error);
+                }
+            } catch (err) {
+                console.error('Error al guardar en Supabase:', err);
+            }
+
+            // Respaldo local
+            references = [...CLASSIC_BOOKS];
+            saveToLocalStorage();
+            renderSidebarNav();
+            updateUI();
+            showToast('¡Referencias cargadas localmente!');
+        }
+
+        // Cambiar estado de destacada ⭐
+        async function toggleStar(id) {
+            const ref = references.find(r => r.id === id);
+            if (ref) {
+                const newStarred = !ref.starred;
+                try {
+                    const { error } = await _supabase
+                        .from('referencias')
+                        .update({ starred: newStarred })
+                        .eq('id', id);
+
+                    if (!error) {
+                        ref.starred = newStarred;
+                        saveToLocalStorage();
+                        renderSidebarNav();
+                        updateUI();
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Error al actualizar estrella en Supabase:', err);
+                }
+
+                // Respaldo local
+                ref.starred = newStarred;
+                saveToLocalStorage();
+                renderSidebarNav();
+                updateUI();
+            }
+        }
+
+        // Eliminar referencia de la nube
+        async function deleteReference(id) {
+            if (confirm('¿Estás seguro de que deseas eliminar esta referencia?')) {
+                try {
+                    const { error } = await _supabase
+                        .from('referencias')
+                        .delete()
+                        .eq('id', id);
+
+                    if (!error) {
+                        references = references.filter(r => r.id !== id);
+                        saveToLocalStorage();
+                        renderSidebarNav();
+                        updateUI();
+                        showToast('Referencia eliminada.');
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Error al eliminar en Supabase:', err);
+                }
+
+                // Respaldo local
+                references = references.filter(r => r.id !== id);
+                saveToLocalStorage();
+                renderSidebarNav();
+                updateUI();
+                showToast('Referencia eliminada.');
+            }
+        }
+
+        async function copyCitation(id) {
+            const ref = references.find(r => r.id === id);
+            if (!ref) return;
+
+            const citation = (ref.citationText && ref.citationText.trim())
+                ? ref.citationText.trim()
+                : `${ref.authors || ''} (${ref.year || ''}). ${ref.title}.${ref.publisher ? ' ' + ref.publisher + '.' : ''}`.trim();
+
+            try {
+                await navigator.clipboard.writeText(citation);
+                showToast('¡Cita copiada al portapapeles!');
+            } catch (err) {
+                showToast('Error al copiar la cita');
+            }
+        }
+
+        // Disclaimer Modal handlers
+        function openDisclaimerModal() {
+            document.getElementById('disclaimer-modal').classList.remove('hidden');
+        }
+
+        function closeDisclaimerModal() {
+            document.getElementById('disclaimer-modal').classList.add('hidden');
+        }
+
+        // Populate Modal Form Subject Dropdown
+        function populateModalTopics(selectedCuatri = '', selectedTopic = '') {
+            const topicSelect = document.getElementById('ref-topic');
+            let subjects = [];
+
+            if (selectedCuatri && SUBJECTS_BY_CUATRI[selectedCuatri]) {
+                subjects = SUBJECTS_BY_CUATRI[selectedCuatri];
+            } else {
+                subjects = getAllSubjects();
+            }
+
+            let html = '<option value="" disabled selected>Seleccionar materia...</option>';
+            subjects.forEach(s => {
+                html += `<option value="${s.code}">${s.code} — ${s.name}</option>`;
+            });
+
+            topicSelect.innerHTML = html;
+            if (selectedTopic) {
+                topicSelect.value = selectedTopic;
+            }
+        }
+
+        function handleModalCuatriChange(cVal) {
+            populateModalTopics(cVal);
+        }
+
+        function openModal(editId = null) {
+            const modal = document.getElementById('modal');
+            const form = document.getElementById('ref-form');
+            form.reset();
+
+            if (editId) {
+                const ref = references.find(r => r.id === editId);
+                if (ref) {
+                    document.getElementById('modal-title').textContent = 'Editar Referencia';
+                    document.getElementById('ref-id').value = ref.id;
+                    document.getElementById('ref-title').value = ref.title;
+                    document.getElementById('ref-citation-text').value = ref.citationText || '';
+                    document.getElementById('ref-authors').value = ref.authors || '';
+                    document.getElementById('ref-year').value = ref.year || '';
+                    document.getElementById('ref-type').value = ref.type || 'book';
+                    document.getElementById('ref-cuatrimestre').value = ref.cuatrimestre || '';
+                    populateModalTopics(ref.cuatrimestre, ref.topic);
+                    document.getElementById('ref-publisher').value = ref.publisher || '';
+                    document.getElementById('ref-doi').value = ref.doi || '';
+                    document.getElementById('ref-notes').value = ref.notes || '';
+                    document.getElementById('ref-starred').checked = !!ref.starred;
+                }
+            } else {
+                document.getElementById('modal-title').textContent = 'Añadir Nueva Referencia';
+                document.getElementById('ref-id').value = '';
+                document.getElementById('ref-citation-text').value = '';
+
+                const activeCuatri = currentCuatriFilter.startsWith('C') ? currentCuatriFilter : '';
+                document.getElementById('ref-cuatrimestre').value = activeCuatri;
+                populateModalTopics(activeCuatri, currentTopicFilter !== 'all' ? currentTopicFilter : '');
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function editReference(id) {
+            openModal(id);
+        }
+
+        // Guardar o actualizar referencia
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('ref-id').value;
+            const refId = editId || 'ref-' + Date.now();
+            const createdAtVal = editId ? (references.find(r => r.id === editId)?.createdAt || Date.now()) : Date.now();
+            const citationTextVal = document.getElementById('ref-citation-text').value.trim();
+            const authorsVal = document.getElementById('ref-authors').value.trim();
+            const yearInput = document.getElementById('ref-year').value;
+            const yearVal = yearInput ? parseInt(yearInput) : null;
+
+            const dbPayload = {
+                id: refId,
+                title: document.getElementById('ref-title').value.trim(),
+                citation_text: citationTextVal,
+                authors: authorsVal,
+                year: yearVal,
+                type: document.getElementById('ref-type').value,
+                cuatrimestre: document.getElementById('ref-cuatrimestre').value,
+                topic: document.getElementById('ref-topic').value,
+                publisher: document.getElementById('ref-publisher').value.trim(),
+                doi: document.getElementById('ref-doi').value.trim(),
+                notes: document.getElementById('ref-notes').value.trim(),
+                starred: document.getElementById('ref-starred').checked,
+                created_at: createdAtVal
+            };
+
+            try {
+                const { error } = await _supabase.from('referencias').upsert(dbPayload);
+
+                if (!error) {
+                    closeModal();
+                    await loadFromLocalStorage();
+                    showToast(editId ? 'Referencia actualizada en la nube.' : '¡Nueva referencia añadida!');
+                    return;
+                } else {
+                    console.error('Error al guardar en Supabase:', error);
+                }
+            } catch (err) {
+                console.error('Excepción al conectar con Supabase:', err);
+            }
+
+            // Respaldo local si falla Supabase o no está configurado
+            const refData = {
+                id: dbPayload.id,
+                title: dbPayload.title,
+                citationText: dbPayload.citation_text,
+                authors: dbPayload.authors,
+                year: dbPayload.year,
+                type: dbPayload.type,
+                cuatrimestre: dbPayload.cuatrimestre,
+                topic: dbPayload.topic,
+                publisher: dbPayload.publisher,
+                doi: dbPayload.doi,
+                notes: dbPayload.notes,
+                starred: dbPayload.starred,
+                createdAt: dbPayload.created_at
+            };
+
+            if (editId) {
+                const index = references.findIndex(r => r.id === editId);
+                if (index !== -1) references[index] = refData;
+            } else {
+                references.unshift(refData);
+            }
+
+            saveToLocalStorage();
+            closeModal();
+            renderSidebarNav();
+            updateUI();
+            showToast(editId ? 'Referencia actualizada.' : '¡Nueva referencia añadida!');
+        }
+
+        function exportBibTeX() {
+            const list = getFilteredReferences();
+            if (list.length === 0) return;
+
+            let bibContent = `% Exportación BibTeX de Biblioteca Retort\n% Generado: ${new Date().toLocaleString('es-ES')}\n\n`;
+
+            list.forEach(ref => {
+                const citeKey = generateCiteKey(ref.authors, ref.year, ref.title);
+                const entryType = ref.type === 'article' ? 'article' : (ref.type === 'handbook' ? 'manual' : 'book');
+
+                bibContent += `@${entryType}{${citeKey},\n`;
+                bibContent += `  author       = {${ref.authors}},\n`;
+                bibContent += `  title        = {${ref.title}},\n`;
+                bibContent += `  year         = {${ref.year}},\n`;
+                if (ref.publisher) bibContent += `  publisher    = {${ref.publisher}},\n`;
+                if (ref.doi) bibContent += `  doi          = {${ref.doi}},\n`;
+                if (ref.notes) bibContent += `  note         = {${ref.notes.replace(/\n/g, ' ')}},\n`;
+                bibContent += `  keywords     = {${getSubjectName(ref.topic)}${ref.cuatrimestre ? ', ' + ref.cuatrimestre : ''}}\n`;
+                bibContent += `}\n\n`;
+            });
+
+            const blob = new Blob([bibContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `retort-referencias-${currentCuatriFilter}-${Date.now()}.bib`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('¡Archivo BibTeX exportado!');
+        }
+
+        function generateCiteKey(authors, year, title) {
+            const firstAuthor = (authors.split(',')[0] || 'ref').split(' ').pop().replace(/[^a-zA-Z]/g, '');
+            const firstWord = title.split(' ')[0].replace(/[^a-zA-Z]/g, '');
+            return `${firstAuthor}${year}${firstWord}`.toLowerCase();
+        }
+
+        // Helpers
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 right-5 bg-ink text-paper px-4 py-2.5 font-mono text-xs shadow-lg border border-rule z-50 transition-opacity duration-300';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+    </script>
+</body>
+
+</html>
